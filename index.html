@@ -1,0 +1,558 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Crewnexa · AI Network Operations Copilot</title>
+<style>
+  :root{
+    --bg:#f5f7f8; --card:#ffffff; --ink:#182029; --muted:#5c6773;
+    --line:#e4e8ec; --line2:#eef1f4;
+    --accent:#0e6f76; --accent-2:#0a545a; --accent-soft:#e6f1f1;
+    --red:#c23b34; --red-soft:#fbecea;
+    --green:#1f9d63; --green-soft:#e8f6ee;
+    --amber:#b9821b; --amber-soft:#fbf2df;
+    --mono:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;
+    --sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Inter,Helvetica,Arial,sans-serif;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{font-family:var(--sans);color:var(--ink);background:var(--bg);line-height:1.5;-webkit-font-smoothing:antialiased}
+  .wrap{max-width:1000px;margin:0 auto;padding:0 16px}
+
+  /* header */
+  header{background:var(--card);border-bottom:1px solid var(--line)}
+  .bar{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:14px 16px;max-width:1000px;margin:0 auto;flex-wrap:wrap}
+  .brand{display:flex;align-items:center;gap:10px}
+  .mark{width:26px;height:26px;flex:0 0 auto}
+  .brand b{font-size:17px;letter-spacing:.2px}
+  .brand span{color:var(--muted);font-weight:500}
+  .poc{font-size:12px;color:var(--accent-2);background:var(--accent-soft);border:1px solid #cfe4e4;padding:5px 10px;border-radius:999px;font-weight:600}
+
+  .lede{padding:18px 16px 4px;max-width:1000px;margin:0 auto}
+  .lede h1{font-size:20px;margin:0 0 6px;font-weight:700}
+  .lede p{margin:0;color:var(--muted);font-size:14.5px;max-width:78ch}
+
+  .note{max-width:1000px;margin:14px auto 0;padding:9px 14px;background:#fff;border:1px solid var(--line);border-left:3px solid var(--accent);border-radius:8px;font-size:12.8px;color:var(--muted)}
+  .note b{color:var(--ink)}
+
+  /* tabs */
+  .tabs{position:sticky;top:0;z-index:5;background:var(--bg);padding:12px 0;margin-top:14px;border-bottom:1px solid var(--line)}
+  .tabs .wrap{display:flex;align-items:center;gap:12px;flex-wrap:wrap}
+  .tabs .eye{font-size:11.5px;font-weight:800;letter-spacing:.6px;text-transform:uppercase;color:var(--accent-2)}
+  .seg{display:inline-flex;background:#fff;border:1px solid var(--line);border-radius:12px;padding:5px;gap:5px;box-shadow:0 1px 3px rgba(20,30,40,.06)}
+  .tab{appearance:none;border:1px solid transparent;background:transparent;font-family:inherit;font-size:14px;font-weight:650;color:var(--muted);padding:10px 18px;border-radius:8px;cursor:pointer;display:flex;align-items:center;gap:8px;white-space:nowrap}
+  .tab .n{font-size:11px;font-weight:800;width:18px;height:18px;border-radius:50%;display:inline-flex;align-items:center;justify-content:center;background:#eef1f4;color:var(--muted)}
+  .tab[aria-selected="true"]{background:var(--accent);color:#fff;border-color:var(--accent)}
+  .tab[aria-selected="true"] .n{background:rgba(255,255,255,.28);color:#fff}
+  .tab:not([aria-selected="true"]):hover{color:var(--ink);background:var(--accent-soft)}
+  .nextbar{display:flex;justify-content:flex-end;margin-top:22px}
+  .backbar{margin-bottom:6px}
+
+  main{padding:20px 0 40px}
+  .panel[hidden]{display:none}
+
+  /* kpi */
+  .kpis{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .kpi{background:var(--card);border:1px solid var(--line);border-radius:10px;padding:13px 14px}
+  .kpi .k{font-size:12px;color:var(--muted);font-weight:600}
+  .kpi .v{font-size:22px;font-weight:750;margin-top:3px;letter-spacing:-.3px}
+  .kpi .d{font-size:12px;margin-top:3px;font-weight:600}
+  .cap{font-size:12px;color:var(--muted);margin:8px 2px 0}
+
+  h2.sec{font-size:15.5px;margin:26px 0 10px;display:flex;align-items:center;gap:9px}
+  h2.sec .pill{font-size:11px;font-weight:700;color:#fff;background:var(--accent);padding:2px 8px;border-radius:999px;letter-spacing:.3px}
+
+  .card{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+
+  .row{display:flex;align-items:center;justify-content:space-between;gap:10px;flex-wrap:wrap}
+  .btn{appearance:none;font-family:inherit;font-size:13.5px;font-weight:650;border-radius:8px;padding:9px 14px;cursor:pointer;border:1px solid var(--accent);background:var(--accent);color:#fff}
+  .btn:hover{background:var(--accent-2);border-color:var(--accent-2)}
+  .btn.ghost{background:#fff;color:var(--accent-2)}
+  .btn.ghost:hover{background:var(--accent-soft)}
+  .btn.green{background:var(--green);border-color:var(--green)}
+  .btn.green:hover{filter:brightness(.95)}
+  .btn.amber{background:#fff;color:var(--amber);border-color:var(--amber)}
+  .btn.amber:hover{background:var(--amber-soft)}
+  .btn.sm{padding:6px 11px;font-size:12.5px}
+  .btn[disabled]{opacity:.45;cursor:not-allowed}
+  .link{background:none;border:none;color:var(--accent-2);font-family:inherit;font-size:12.8px;font-weight:600;cursor:pointer;text-decoration:underline;padding:0}
+
+  .tag{display:inline-flex;align-items:center;gap:6px;font-size:11.5px;font-weight:700;padding:3px 9px;border-radius:999px;border:1px solid}
+  .t-red{color:var(--red);background:var(--red-soft);border-color:#f0cfcb}
+  .t-green{color:var(--green);background:var(--green-soft);border-color:#c8e9d6}
+  .t-amber{color:var(--amber);background:var(--amber-soft);border-color:#ecdcae}
+  .t-mut{color:var(--muted);background:#f1f4f6;border-color:var(--line)}
+  .dot{width:8px;height:8px;border-radius:50%;display:inline-block}
+  .d-red{background:var(--red)} .d-green{background:var(--green)} .d-amber{background:var(--amber)} .d-mut{background:#9aa6b2}
+
+  /* stepper */
+  .steps{display:flex;gap:6px;flex-wrap:wrap;margin:2px 0 14px}
+  .step{font-size:11.5px;font-weight:650;color:var(--muted);background:#f1f4f6;border:1px solid var(--line);padding:5px 10px;border-radius:999px}
+  .step.active{color:#fff;background:var(--accent);border-color:var(--accent)}
+  .step.done{color:var(--green);background:var(--green-soft);border-color:#c8e9d6}
+
+  .block{border:1px solid var(--line);border-radius:10px;padding:13px;margin-top:12px}
+  .block.red{border-color:#eccdc9;background:var(--red-soft)}
+  .block.green{border-color:#c8e9d6;background:var(--green-soft)}
+  .block.amber{border-color:#ecdcae;background:var(--amber-soft)}
+  .block h4{margin:0 0 6px;font-size:13.5px}
+  .block p{margin:0;font-size:13px;color:#2b3540}
+  .kv{font-size:12.8px;color:#2b3540;margin:5px 0 0}
+  .kv b{color:var(--ink)}
+
+  .term{font-family:var(--mono);font-size:12px;background:#0f1620;color:#d7e2ea;border-radius:9px;padding:12px 13px;margin-top:12px;min-height:30px;white-space:pre-wrap;line-height:1.7}
+  .term .ok{color:#63d29a} .term .warn{color:#e7b45a} .term .mut{color:#8ba0b0}
+
+  /* table */
+  table{width:100%;border-collapse:collapse;font-size:12.8px}
+  th,td{text-align:left;padding:9px 10px;border-bottom:1px solid var(--line2);vertical-align:top}
+  th{font-size:11px;text-transform:uppercase;letter-spacing:.4px;color:var(--muted);font-weight:700;background:#fafbfc}
+  tr.crit td{background:#fdf4f3}
+  td .fix{color:var(--muted);font-size:11.8px;margin-top:3px}
+  .mono{font-family:var(--mono);font-size:12px}
+
+  .score{display:flex;align-items:center;gap:14px;flex-wrap:wrap}
+  .ring{font-size:30px;font-weight:800;letter-spacing:-1px}
+  .summ{display:flex;gap:8px;flex-wrap:wrap}
+
+  /* architecture */
+  .flow{display:flex;align-items:stretch;gap:0;overflow-x:auto;padding:4px 2px 8px}
+  .node{flex:0 0 auto;min-width:104px;text-align:center;background:#fff;border:1px solid var(--line);border-radius:9px;padding:9px 8px;font-size:12px;font-weight:650}
+  .node small{display:block;color:var(--muted);font-weight:500;font-size:10.5px;margin-top:2px}
+  .arrow{flex:0 0 auto;align-self:center;color:#9aa6b2;padding:0 6px;font-size:15px}
+  .node.gate{border-color:var(--amber);background:var(--amber-soft);color:var(--amber)}
+  .loop{font-size:12px;color:var(--accent-2);margin-top:6px;font-weight:600}
+  .src{display:flex;gap:8px;flex-wrap:wrap;margin-top:12px}
+  .chip{font-size:11.5px;font-weight:600;color:#2b3540;background:#f1f4f6;border:1px solid var(--line);border-radius:999px;padding:4px 10px}
+
+  .plan{display:grid;grid-template-columns:repeat(3,1fr);gap:14px}
+  .ph{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:14px}
+  .ph h4{margin:0 0 4px;font-size:14px}
+  .ph .d0{font-size:11.5px;font-weight:700;color:var(--accent-2);letter-spacing:.3px;margin-bottom:8px}
+  .ph ul{margin:0;padding-left:16px}
+  .ph li{font-size:12.6px;margin:5px 0;color:#2b3540}
+
+  footer{border-top:1px solid var(--line);color:var(--muted);font-size:12.3px;padding:16px;text-align:center}
+  footer b{color:var(--ink)}
+
+  @media (max-width:760px){
+    .kpis{grid-template-columns:1fr 1fr}
+    .grid2{grid-template-columns:1fr}
+    .plan{grid-template-columns:1fr}
+  }
+</style>
+</head>
+<body>
+
+<header>
+  <div class="bar">
+    <div class="brand">
+      <svg class="mark" viewBox="0 0 32 32" aria-hidden="true">
+        <path d="M16 2l12 7v14l-12 7L4 23V9z" fill="none" stroke="#0e6f76" stroke-width="2" stroke-linejoin="round"/>
+        <circle cx="16" cy="16" r="3.4" fill="#0e6f76"/>
+        <path d="M16 12.6V6.5M16 19.4v6.1M19 16h6.2M12.8 16H6.6" stroke="#0e6f76" stroke-width="1.7" stroke-linecap="round"/>
+      </svg>
+      <div><b>Crewnexa</b> &nbsp;<span>Network Reliability &amp; AI Automation</span></div>
+    </div>
+    <div class="poc">Interactive POC · simulated data</div>
+  </div>
+</header>
+
+<div class="lede">
+  <h1>AI Network Operations Copilot for Aruba and Palo Alto</h1>
+  <p>One closed loop that detects, diagnoses, seeks approval, self-heals, and keeps firewall policy clean. Built to move your network from script based automation to a Network Reliability Engineering (NRE) model, exactly the operating model described in Role 4.</p>
+</div>
+
+<div class="note">
+  <b>How to read this:</b> the two modules below run real analysis logic in your browser on <b>simulated Aruba and Palo Alto data</b>. No live device access is used here. Connecting this same logic to your real Aruba Central and Panorama APIs is Phase 1 of the 90 day plan on the next tab.
+</div>
+
+<div class="tabs">
+  <div class="wrap">
+    <span class="eye">2 views, click to switch &rarr;</span>
+    <div class="seg" role="tablist">
+      <button class="tab" role="tab" aria-selected="true" id="t1" onclick="showTab(1)"><span class="n">1</span> Live demo</button>
+      <button class="tab" role="tab" aria-selected="false" id="t2" onclick="showTab(2)"><span class="n">2</span> Architecture &amp; 90 day plan</button>
+    </div>
+  </div>
+</div>
+
+<main class="wrap">
+
+  <!-- ================= TAB 1 ================= -->
+  <section class="panel" id="p1">
+
+    <div class="kpis">
+      <div class="kpi"><div class="k">Alert noise</div><div class="v">1,240 &rarr; 3</div><div class="d" style="color:var(--green)">98% correlated away</div></div>
+      <div class="kpi"><div class="k">MTTR</div><div class="v">47m &rarr; 6m</div><div class="d" style="color:var(--green)">87% faster</div></div>
+      <div class="kpi"><div class="k">Automated change success</div><div class="v">96%</div><div class="d" style="color:var(--green)">with rollback</div></div>
+      <div class="kpi"><div class="k">L1 toil removed</div><div class="v">~70%</div><div class="d" style="color:var(--green)">shifted to self-service</div></div>
+    </div>
+    <p class="cap">Illustrative baseline vs AI-native target on simulated data, shown to frame the two working modules below.</p>
+
+    <h2 class="sec"><span class="pill">MODULE 1</span> Closed loop incident, with a human approval gate</h2>
+    <div class="card">
+      <div class="steps" id="stepper">
+        <span class="step" data-s="observe">Observe</span>
+        <span class="step" data-s="correlate">Correlate</span>
+        <span class="step" data-s="diagnose">Diagnose</span>
+        <span class="step" data-s="approve">Approve</span>
+        <span class="step" data-s="execute">Execute</span>
+        <span class="step" data-s="validate">Validate</span>
+        <span class="step" data-s="learn">Learn</span>
+      </div>
+
+      <div class="block red" id="inc-open">
+        <div class="row">
+          <h4 style="margin:0"><span class="tag t-red"><span class="dot d-red"></span>P2 INCIDENT</span> &nbsp; Campus-B wireless clients dropping</h4>
+          <span class="mono" style="color:var(--muted)">INC-4471 · 14:02:11</span>
+        </div>
+        <p class="kv" style="margin-top:8px"><b>AIOps correlation:</b> 1,240 raw events from Aruba Central, ClearPass and syslog collapsed into <b>1 incident</b>. 214 clients on 3 APs losing association, RADIUS timeouts rising.</p>
+      </div>
+
+      <div id="inc-actions" style="margin-top:14px">
+        <button class="btn" id="btn-diag" onclick="runDiagnosis()">Run AI diagnosis</button>
+      </div>
+
+      <div id="inc-body"></div>
+      <div class="term" id="inc-term" hidden></div>
+      <div id="inc-reset" style="margin-top:12px" hidden><button class="link" onclick="resetIncident()">Reset and replay</button></div>
+    </div>
+
+    <h2 class="sec"><span class="pill">MODULE 2</span> Palo Alto policy hygiene analyzer</h2>
+    <div class="card">
+      <div class="row">
+        <p style="margin:0;font-size:13px;color:var(--muted);max-width:60ch">Runs on a sample Panorama rulebase and flags <b>overly permissive</b>, <b>shadowed</b>, <b>duplicate</b>, <b>unused</b> and <b>unlogged</b> rules, with a risk score and a concrete fix for each.</p>
+        <button class="btn" id="btn-scan" onclick="runScan()">Analyze rulebase</button>
+      </div>
+      <div id="scan-out" style="margin-top:14px"></div>
+    </div>
+
+    <div class="nextbar">
+      <button class="btn" onclick="showTab(2)">Next: architecture &amp; 90 day plan &rarr;</button>
+    </div>
+
+  </section>
+
+  <!-- ================= TAB 2 ================= -->
+  <section class="panel" id="p2" hidden>
+
+    <div class="backbar"><button class="link" onclick="showTab(1)">&larr; Back to live demo</button></div>
+
+    <h2 class="sec"><span class="pill">ARCHITECTURE</span> The closed loop and where your data plugs in</h2>
+    <div class="card">
+      <div class="flow">
+        <div class="node">Observe<small>telemetry, flows, logs</small></div><div class="arrow">&rarr;</div>
+        <div class="node">Correlate<small>AIOps, dedup</small></div><div class="arrow">&rarr;</div>
+        <div class="node">Diagnose<small>agent + RAG</small></div><div class="arrow">&rarr;</div>
+        <div class="node gate">Approve<small>human gate</small></div><div class="arrow">&rarr;</div>
+        <div class="node">Execute<small>Ansible, API</small></div><div class="arrow">&rarr;</div>
+        <div class="node">Validate<small>auto verify</small></div><div class="arrow">&rarr;</div>
+        <div class="node">Learn<small>knowledge base</small></div>
+      </div>
+      <div class="loop">&#8630; Learnings feed back so the same fault is prevented, not fixed twice.</div>
+      <div class="src">
+        <span class="chip">Aruba Central</span><span class="chip">Aruba CX</span><span class="chip">ClearPass</span>
+        <span class="chip">Palo Alto NGFW</span><span class="chip">Panorama</span><span class="chip">GlobalProtect</span>
+        <span class="chip">SIEM / SOAR</span><span class="chip">ServiceNow / CMDB</span><span class="chip">OpenTelemetry</span>
+      </div>
+    </div>
+
+    <h2 class="sec"><span class="pill">DELIVERY</span> First 90 days</h2>
+    <div class="plan">
+      <div class="ph">
+        <div class="d0">DAYS 0 to 30 · FOUNDATION</div>
+        <h4>See everything, break nothing</h4>
+        <ul>
+          <li>Read only API integration to Aruba Central and Panorama</li>
+          <li>Telemetry pipeline, Git repo, golden config baseline</li>
+          <li>Palo Alto hygiene report live on your rulebase</li>
+          <li>Define SLOs, SLIs and error budgets</li>
+        </ul>
+      </div>
+      <div class="ph">
+        <div class="d0">DAYS 31 to 60 · AUTOMATE</div>
+        <h4>Safe, reusable, reversible</h4>
+        <ul>
+          <li>Ansible and Python modules with pre and post checks, rollback</li>
+          <li>Self-service provisioning and access workflows</li>
+          <li>AIOps correlation and noise reduction in production</li>
+          <li>First guardrailed self-healing behind approval gates</li>
+          <li>ServiceNow change records with post-change evidence</li>
+        </ul>
+      </div>
+      <div class="ph">
+        <div class="d0">DAYS 61 to 90 · AI-NATIVE</div>
+        <h4>Copilot and closed loop</h4>
+        <ul>
+          <li>Agentic NOC copilot: RAG over approved runbooks, tool calling</li>
+          <li>Closed loop for selected faults, idempotent and audited</li>
+          <li>Policy-as-code for Palo Alto changes with risk scoring</li>
+          <li>Power BI SLO, capacity and risk views</li>
+          <li>Measured drop in toil, MTTR and change failure rate</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 class="sec"><span class="pill">COVERAGE</span> Every area in Role 4, mapped</h2>
+    <div class="card" style="padding:0;overflow:hidden">
+      <table>
+        <thead><tr><th style="width:34%">Requirement area</th><th style="width:46%">How it is covered</th><th style="width:20%">Where</th></tr></thead>
+        <tbody id="cov"></tbody>
+      </table>
+    </div>
+
+  </section>
+
+</main>
+
+<footer>
+  <b>Crewnexa</b> · AI Network Operations Copilot · prepared by Mudassar. Simulated proof of concept for the Role 4 engagement.
+</footer>
+
+<script>
+/* ---------- tabs ---------- */
+function showTab(n){
+  document.getElementById('p1').hidden = n!==1;
+  document.getElementById('p2').hidden = n!==2;
+  document.getElementById('t1').setAttribute('aria-selected', n===1);
+  document.getElementById('t2').setAttribute('aria-selected', n===2);
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+/* ---------- stepper helper ---------- */
+function setStep(active, done){
+  document.querySelectorAll('#stepper .step').forEach(el=>{
+    const s = el.dataset.s;
+    el.classList.toggle('active', s===active);
+    el.classList.toggle('done', done.includes(s));
+  });
+}
+
+/* ---------- Module 1: closed loop ---------- */
+let incState = 'new';
+setStep('observe',[]);
+setStep('correlate',['observe']);
+
+function runDiagnosis(){
+  document.getElementById('btn-diag').disabled = true;
+  document.getElementById('btn-diag').textContent = 'Diagnosing...';
+  setStep('diagnose',['observe','correlate']);
+  setTimeout(()=>{
+    const body = document.getElementById('inc-body');
+    body.innerHTML = `
+      <div class="block">
+        <div class="row"><h4 style="margin:0">AI root cause</h4><span class="tag t-green"><span class="dot d-green"></span>confidence 92%</span></div>
+        <p class="kv" style="margin-top:8px"><b>Cause:</b> access switch <span class="mono">AC-B-07</span> uplink member <span class="mono">1/1/49</span> is flapping (12 transitions in 4 min). The APs behind it keep losing reachability, so their clients reauthenticate together and flood ClearPass with requests.</p>
+        <p class="kv"><b>Evidence:</b> up/down counter on <span class="mono">AC-B-07</span>, LACP member drop on the core peer, RADIUS Access-Request rate +410%, signature match in knowledge base (<span class="mono">KB-0192</span>).</p>
+        <p class="kv"><b>Recommended action:</b> disable the flapping member <span class="mono">1/1/49</span>, keep the LAG up on <span class="mono">1/1/50</span>, then clear the stale sessions. Reversible, blast radius one switch.</p>
+      </div>
+      <div class="block amber" id="gate">
+        <div class="row">
+          <div><h4 style="margin:0">Approval gate</h4><p style="margin-top:4px">Change is policy controlled. A human approves before anything is executed on the network.</p></div>
+          <div style="display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn amber" onclick="escalate()">Escalate to engineer</button>
+            <button class="btn green" onclick="approve()">Approve remediation</button>
+          </div>
+        </div>
+      </div>`;
+    setStep('approve',['observe','correlate','diagnose']);
+    document.getElementById('btn-diag').style.display='none';
+  }, 1000);
+}
+
+function approve(){
+  document.getElementById('gate').outerHTML =
+    `<div class="block"><h4>Approved by Mudassar · executing with rollback armed</h4></div>`;
+  setStep('execute',['observe','correlate','diagnose','approve']);
+  const term = document.getElementById('inc-term');
+  term.hidden = false; term.innerHTML='';
+  const lines = [
+    ['> playbook: heal-uplink-flap.yml  (idempotent)',''],
+    ['  checkpoint config AC-B-07 ..... <span class="ok">saved</span>','ok'],
+    ['  set member 1/1/49 admin down .. <span class="ok">done</span>','ok'],
+    ['  verify LAG on 1/1/50 .......... <span class="ok">up, 10G</span>','ok'],
+    ['  clearpass: clear stale sess ... <span class="ok">cleared</span>','ok'],
+    ['  post-check: client assoc ...... <span class="ok">stable</span>','ok'],
+  ];
+  let i=0;
+  (function tick(){
+    if(i<lines.length){ term.innerHTML += lines[i][0]+'\n'; i++; setTimeout(tick, 520); }
+    else{ setTimeout(validate, 500); }
+  })();
+}
+
+function validate(){
+  setStep('validate',['observe','correlate','diagnose','approve','execute']);
+  const body = document.getElementById('inc-body');
+  body.innerHTML += `
+    <div class="block green">
+      <div class="row"><h4 style="margin:0">Service restored and verified</h4><span class="tag t-green"><span class="dot d-green"></span>INC-4471 auto-closed</span></div>
+      <p class="kv" style="margin-top:8px"><b>214 of 214 clients reconnected.</b> RADIUS latency back to baseline, packet loss 0%. Total time from detection: <b>5m 48s</b>.</p>
+    </div>
+    <div class="block">
+      <h4>Learn</h4>
+      <p>Signature and successful playbook written back to the knowledge base as <span class="mono">KB-0192</span>. Next occurrence can be resolved with lower human effort.</p>
+    </div>`;
+  setStep('learn',['observe','correlate','diagnose','approve','execute','validate','learn']);
+  document.getElementById('inc-reset').hidden = false;
+}
+
+function escalate(){
+  document.getElementById('gate').outerHTML = `
+    <div class="block amber">
+      <div class="row"><h4 style="margin:0">Escalated with full evidence bundle</h4><span class="tag t-amber"><span class="dot d-amber"></span>handed to engineer</span></div>
+      <p class="kv" style="margin-top:8px">Nothing was changed on the network. The engineer receives the root cause, evidence, the exact recommended action and a one click approve. High risk or low confidence cases always route to a human this way.</p>
+    </div>`;
+  setStep('approve',['observe','correlate','diagnose']);
+  document.getElementById('inc-reset').hidden = false;
+}
+
+function resetIncident(){
+  document.getElementById('inc-body').innerHTML='';
+  const term=document.getElementById('inc-term'); term.hidden=true; term.innerHTML='';
+  document.getElementById('inc-reset').hidden=true;
+  const b=document.getElementById('btn-diag'); b.style.display=''; b.disabled=false; b.textContent='Run AI diagnosis';
+  setStep('correlate',['observe']);
+}
+
+/* ---------- Module 2: Palo Alto hygiene ---------- */
+const RULES = [
+  {id:'R1', name:'Allow-Web-Outbound',   src:'Trust',   dst:'Untrust', app:'web-browsing, ssl', svc:'application-default', act:'allow', log:true,  hits:184203},
+  {id:'R2', name:'Any-Any-Temp',         src:'any',     dst:'any',     app:'any',               svc:'any',                 act:'allow', log:false, hits:9021},
+  {id:'R3', name:'Allow-DNS',            src:'Trust',   dst:'Untrust', app:'dns',               svc:'application-default', act:'allow', log:true,  hits:45210},
+  {id:'R4', name:'Old-Vendor-Access',    src:'Trust',   dst:'DMZ',     app:'any',               svc:'any',                 act:'allow', log:true,  hits:0},
+  {id:'R5', name:'Allow-Web-Outbound-2', src:'Trust',   dst:'Untrust', app:'web-browsing, ssl', svc:'application-default', act:'allow', log:true,  hits:33},
+  {id:'R6', name:'Block-Bad-Geo',        src:'Untrust', dst:'Trust',   app:'any',               svc:'any',                 act:'deny',  log:true,  hits:5120},
+  {id:'R7', name:'Guest-to-Internet',    src:'Guest',   dst:'Untrust', app:'web-browsing, ssl', svc:'application-default', act:'allow', log:true,  hits:21044},
+  {id:'R8', name:'Legacy-RDP-Any',       src:'any',     dst:'Trust',   app:'ms-rdp',            svc:'any',                 act:'allow', log:false, hits:12},
+];
+
+function sevOf(risk){ if(risk>=60)return 'critical'; if(risk>=35)return 'high'; if(risk>=15)return 'medium'; return 'clean'; }
+
+function analyze(rules){
+  const seen={}; const out=[];
+  for(let i=0;i<rules.length;i++){
+    const r=rules[i]; const flags=[]; let risk=0;
+    const permissive = (r.act==='allow' && ((r.src==='any'&&r.dst==='any') || (r.app==='any'&&r.svc==='any')));
+    const inboundAny  = (r.act==='allow' && r.src==='any' && r.dst==='Trust');
+    if(permissive){flags.push('Overly permissive'); risk+=40;}
+    if(inboundAny){flags.push('Any source inbound to Trust'); risk+=35;}
+    if(r.act==='allow' && !r.log){flags.push('No logging'); risk+=15;}
+    if(r.hits===0){flags.push('Unused (0 hits)'); risk+=20;}
+    const key=[r.src,r.dst,r.app,r.svc,r.act].join('|');
+    if(seen[key]){flags.push('Duplicate of '+seen[key]); risk+=15;} else {seen[key]=r.id;}
+    // shadow: an earlier any/any allow rule sits above and catches this traffic first
+    let shadowedBy=null;
+    if(r.act==='allow'){
+      for(let j=0;j<i;j++){
+        const p=rules[j];
+        if(p.act==='allow' && (p.src==='any'||p.src===r.src) && (p.dst==='any'||p.dst===r.dst) && p.app==='any' && p.svc==='any'){
+          shadowedBy=p.id; break;
+        }
+      }
+    }
+    if(shadowedBy){flags.push('Shadowed by '+shadowedBy); risk+=25;}
+    out.push({...r, flags, risk, shadowedBy});
+  }
+  // second pass: mark catch-all rules that shadow rules below them
+  out.forEach(p=>{
+    const n=out.filter(x=>x.shadowedBy===p.id).length;
+    if(n>0){ p.flags.push('Shadows '+n+' rule'+(n>1?'s':'')+' below'); p.risk += Math.min(n*10,30); }
+  });
+  out.forEach(r=>{ r.risk=Math.min(r.risk,100); r.sev=sevOf(r.risk); });
+  return out;
+}
+
+function fixFor(r){
+  if(r.flags.some(f=>f.startsWith('Shadows '))) return 'Catch-all rule: tighten it or move it down so the rules below can match.';
+  if(r.flags.some(f=>f.startsWith('Shadowed'))) return 'Reorder or remove: traffic never reaches this rule.';
+  if(r.flags.includes('Overly permissive')) return 'Scope source, destination and application to least privilege.';
+  if(r.flags.includes('Any source inbound to Trust')) return 'Restrict source, require GlobalProtect or MFA, enable logging.';
+  if(r.flags.includes('Unused (0 hits)')) return 'Confirm with owner, then decommission.';
+  if(r.flags.some(f=>f.startsWith('Duplicate'))) return 'Consolidate into the original rule.';
+  if(r.flags.includes('No logging')) return 'Enable log at session end for audit.';
+  return 'No action needed.';
+}
+
+function sevTag(sev){
+  const m={critical:['t-red','d-red','Critical'],high:['t-red','d-red','High'],medium:['t-amber','d-amber','Medium'],clean:['t-green','d-green','Clean']};
+  const c=m[sev];
+  return `<span class="tag ${c[0]}"><span class="dot ${c[1]}"></span>${c[2]}</span>`;
+}
+
+function runScan(){
+  const btn=document.getElementById('btn-scan'); btn.disabled=true; btn.textContent='Analyzing...';
+  setTimeout(()=>{
+    const res=analyze(RULES);
+    const n=res.length;
+    const crit=res.filter(r=>r.sev==='critical').length;
+    const high=res.filter(r=>r.sev==='high').length;
+    const med=res.filter(r=>r.sev==='medium').length;
+    const clean=res.filter(r=>r.sev==='clean').length;
+    const score=Math.round(res.reduce((a,r)=>a+(100-r.risk),0)/n);
+    const scoreColor = score>=80?'var(--green)':score>=55?'var(--amber)':'var(--red)';
+
+    let rows='';
+    res.forEach(r=>{
+      const cls = (r.sev==='critical'||r.sev==='high')?'crit':'';
+      const chipCls = r.sev==='medium' ? 't-amber' : 't-red';
+      const flagHtml = r.flags.length ? r.flags.map(f=>`<span class="tag ${chipCls}" style="margin:2px 4px 2px 0">${f}</span>`).join('') : '<span class="tag t-green"><span class="dot d-green"></span>OK</span>';
+      rows+=`<tr class="${cls}">
+        <td><b>${r.id}</b> <span style="color:var(--muted)">${r.name}</span><br><span class="mono" style="color:var(--muted)">${r.src} &rarr; ${r.dst} · ${r.app} · ${r.act}${r.log?'':' · no-log'}</span></td>
+        <td>${flagHtml}${r.flags.length?`<div class="fix">Fix: ${fixFor(r)}</div>`:''}</td>
+        <td>${sevTag(r.sev)} <span class="mono" style="color:var(--muted)">risk ${r.risk}</span></td>
+      </tr>`;
+    });
+
+    document.getElementById('scan-out').innerHTML = `
+      <div class="score">
+        <div class="ring" style="color:${scoreColor}">${score}<span style="font-size:14px;color:var(--muted)">/100</span></div>
+        <div>
+          <div style="font-weight:700;font-size:13.5px">Policy hygiene score</div>
+          <div class="summ" style="margin-top:6px">
+            <span class="tag t-red"><span class="dot d-red"></span>${crit} critical</span>
+            <span class="tag t-red"><span class="dot d-red"></span>${high} high</span>
+            <span class="tag t-amber"><span class="dot d-amber"></span>${med} medium</span>
+            <span class="tag t-green"><span class="dot d-green"></span>${clean} clean</span>
+          </div>
+        </div>
+      </div>
+      <div style="margin-top:14px;border:1px solid var(--line);border-radius:10px;overflow:hidden">
+        <table>
+          <thead><tr><th style="width:34%">Rule</th><th style="width:46%">Findings and fix</th><th style="width:20%">Severity</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+      </div>
+      <p class="cap">Same engine points at your live Panorama export in Phase 1. Every change is proposed, risk scored and sent through the approval gate, never pushed silently.</p>`;
+    btn.style.display='none';
+  }, 700);
+}
+
+/* ---------- coverage table ---------- */
+const COV=[
+  ['Aruba CX, Central, Wireless, ClearPass','Provisioning, compliance, drift remediation, NAC and health checks as reusable modules','plan'],
+  ['Palo Alto NGFW, Panorama, GlobalProtect','Policy lifecycle, rule hygiene, risk scored changes, secure remote access','demo'],
+  ['AIOps and observability','Anomaly detection, event correlation, noise reduction, OpenTelemetry','demo'],
+  ['Agentic AI, RAG, MCP, LLMOps','NOC copilot with grounded knowledge, tool calling, approval aware','demo'],
+  ['Self-healing and closed loop','Guardrailed, idempotent, reversible remediation with auto validation','demo'],
+  ['ServiceNow, CMDB, ITSM','Change records, enrichment, post-change evidence, reconciliation','plan'],
+  ['IaC, GitOps, policy-as-code','Git, CI/CD, testing, rollback, security-as-code','plan'],
+  ['Zero Trust, SASE, SD-WAN, VXLAN/EVPN','Identity aware access, micro-segmentation, modern fabric patterns','plan'],
+  ['NRE, SLOs, Power BI views','Error budgets, MTTR and toil metrics, executive dashboards','plan'],
+];
+(function(){
+  let h='';
+  COV.forEach(c=>{
+    const badge = c[2]==='demo'
+      ? '<span class="tag t-green"><span class="dot d-green"></span>In this demo</span>'
+      : '<span class="tag t-mut"><span class="dot d-mut"></span>In 90 day plan</span>';
+    h+=`<tr><td><b>${c[0]}</b></td><td>${c[1]}</td><td>${badge}</td></tr>`;
+  });
+  document.getElementById('cov').innerHTML=h;
+})();
+</script>
+</body>
+</html>
